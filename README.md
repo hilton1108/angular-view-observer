@@ -104,7 +104,7 @@ export class LazyLoadComponent {
 
 ### Custom Threshold
 
-Track visibility with a custom threshold (0 = element must be fully visible, 1 = any part visible):
+Track visibility with a custom threshold (0 = any part visible, 1 = element must be fully visible). You can also provide an array of thresholds to detect visibility at multiple points:
 
 ```typescript
 <div 
@@ -113,6 +113,29 @@ Track visibility with a custom threshold (0 = element must be fully visible, 1 =
   (visibleChange)="onVisibilityChange($event)"
 >
   Content here
+</div>
+
+<!-- Multiple thresholds -->
+<div
+  viewObserver
+  [threshold]="[0, 0.25, 0.5, 0.75, 1]"
+  (visibleChange)="onVisibilityChange($event)"
+>
+  Track multiple levels of visibility
+</div>
+```
+
+### Custom Root Margin
+
+Set a custom root margin to grow or shrink the area used for intersection:
+
+```typescript
+<div
+  viewObserver
+  rootMargin="100px"
+  (visibleChange)="onVisibilityChange($event)"
+>
+  I will be detected 100px before I enter the viewport!
 </div>
 ```
 
@@ -216,7 +239,8 @@ export class InfiniteScrollComponent implements OnInit {
 
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
-| `threshold` | `number` | `0.1` | Visibility threshold (0-1). Determines what percentage of the element must be visible. |
+| `threshold` | `number \| number[]` | `0.1` | Visibility threshold(s) (0-1). 0 means any part visible, 1 means 100% visible. |
+| `rootMargin` | `string` | `'0px'` | Margin around the root. Can have values similar to the CSS margin property. |
 | `ancestorSelector` | `string` | `undefined` | CSS selector for the scrollable ancestor element to use as the observation root. |
 | `observerCallback` | `Function` | `undefined` | Custom callback function executed when visibility changes. Receives `(entries, observer)`. |
 
