@@ -1,6 +1,7 @@
-import {DestroyRef, Directive, effect, ElementRef, inject, input, output} from '@angular/core';
+import {DestroyRef, Directive, effect, ElementRef, inject, input, output, PLATFORM_ID} from '@angular/core';
 import {debounceTime, Subject} from "rxjs";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
+import {isPlatformBrowser} from "@angular/common";
 
 @Directive({
   selector: '[viewObserver]',
@@ -11,10 +12,12 @@ export class AngularViewObserverDirective {
   //#region Injection
   private _el = inject<ElementRef<HTMLElement>>(ElementRef);
   private destroyRef = inject(DestroyRef);
+  private platformId = inject(PLATFORM_ID);
   //#endregion
 
   //#region Inputs and Outputs
-  public threshold = input<number>(0.1);
+  public threshold = input<number | number[]>(0.1);
+  public rootMargin = input<string>('0px');
   public ancestorSelector = input<string>();
   public observerCallback = input<Function>();
 
@@ -28,6 +31,10 @@ export class AngularViewObserverDirective {
 
   //#region Constructor
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.observer?.disconnect();
+    });
+
     this.observer$.asObservable().pipe(
       debounceTime(11),
       takeUntilDestroyed(this.destroyRef)
@@ -35,28 +42,35 @@ export class AngularViewObserverDirective {
       this.visibleChange.emit(entry.isIntersecting)
     })
 
-    effect(() => {
+    effect((onCleanup) => {
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+
       const selector = this.ancestorSelector();
       const callback = this.observerCallback();
       let observerOptions: IntersectionObserverInit = {
         root: null,
         threshold: this.threshold(),
-        rootMargin: '0px',
+        rootMargin: this.rootMargin(),
       }
       if (selector) {
         observerOptions.root = this._el.nativeElement.closest(selector);
       }
 
-      this.observer?.disconnect();
-
-      this.observer = new IntersectionObserver((entries, observer) => {
+      const observer = new IntersectionObserver((entries, observer) => {
         this.observer$.next(entries[0]);
         if (callback) {
           callback(entries, observer);
         }
       }, observerOptions);
 
-      this.observer.observe(this._el.nativeElement);
+      observer.observe(this._el.nativeElement);
+      this.observer = observer;
+
+      onCleanup(() => {
+        observer.disconnect();
+      });
     })
   }
   //#endregion
