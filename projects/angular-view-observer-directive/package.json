@@ -1,6 +1,16 @@
 {
   "name": "angular-view-observer-directive",
   "version": "1.0.0",
+  "description": "Angular directive to observe element visibility within the viewport (IntersectionObserver-based)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hilton1108/angular-view-observer.git",
+    "directory": "projects/angular-view-observer-directive"
+  },
+  "homepage": "https://github.com/hilton1108/angular-view-observer#readme",
+  "bugs": {
+    "url": "https://github.com/hilton1108/angular-view-observer/issues"
+  },
   "peerDependencies": {
     "@angular/common": ">=17.0.0",
     "@angular/core": ">=17.0.0"
